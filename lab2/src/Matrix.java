@@ -205,6 +205,7 @@ public class Matrix {
 
         return new Matrix(resultData);
     }
+    
 
     Matrix div(double w) {
 
