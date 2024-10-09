@@ -268,6 +268,6 @@ public class Matrix {
         }
         return m;
     }
-    
+
 }
 
