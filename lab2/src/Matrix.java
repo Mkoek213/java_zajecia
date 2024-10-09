@@ -72,7 +72,7 @@ public class Matrix {
 
     void reshape(int newRows, int newCols) {
         if (rows * cols != newRows * newCols) {
-            throw new RuntimeException(String.format("%d x %d matrix can't be reshaped to %d x %d", rows, cols, newRows, newCols));
+            throw new RuntimeException("Rows and columns do not match");
         }
         double[][] new_mat = new double[newRows][newCols];
         int index = 0;
