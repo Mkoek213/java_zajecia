@@ -7,6 +7,7 @@ public class Matrix {
     double[][]res_mat;
     //...
 
+
     Matrix(int rows, int cols){
         this.rows = rows;
         this.cols = cols;
@@ -16,6 +17,7 @@ public class Matrix {
     //...
 
     Matrix(double[][] d){
+        //liczba kolumn ma być ustalona na podstawie najdłuższego wiersza w d, brakujace elementy zerowe.
         this.rows = d.length;
         this.cols = 0;
         for (double[] row : d){
@@ -29,11 +31,14 @@ public class Matrix {
             for (int j = 0; j < d[i].length; j++) {
                 this.res_mat[i][j] = d[i][j];
             }
+            for (int j = d[i].length; j < cols; j++) {
+                this.res_mat[i][j] = 0.0;
+            }
         }
         int index = 0;
-        for (double[] row : this.res_mat){
-            for (double val : row){
-                this.data[index++] = val;
+        for (int i = 0; i < rows; i++){
+            for (int j = 0; j < cols; j++){
+                data[index++] = res_mat[i][j];
             }
         }
     }
@@ -62,7 +67,7 @@ public class Matrix {
             buf.append("[");
             for (int j = 0; j < cols; j++){
                 buf.append(res_mat[i][j]);
-                buf.append(" ");
+                buf.append(" ,");
             }
             buf.append("]\n");
         }
@@ -128,6 +133,9 @@ public class Matrix {
                 assert(resultData[i][j] == this.get(i, j) - m.get(i, j)) :
                         "Assertion failed at (" + i + ", " + j + ")";
             }
+        }
+        for (int i = 0; i < rows; i++){
+
         }
 
         return new Matrix(resultData);
@@ -270,5 +278,29 @@ public class Matrix {
         return m;
     }
 
+    public double wyznacznik(){
+        if (rows != cols){
+            throw new RuntimeException("Matrix is not square");
+        }
+        if (rows == 1){
+            return res_mat[0][0];
+        }
+        if (rows == 2){
+            return res_mat[0][0] * res_mat[1][1] - res_mat[0][1] * res_mat[1][0];
+        }
+        for (int i = 0, j=0; i < cols; i++, j++){
+            for (int r = i+1; r < rows; r++){
+                double ratio = res_mat[r][j] / res_mat[i][j];
+                for (int c = 0; c < cols; c++){
+                    res_mat[r][c] -= ratio * res_mat[i][c];
+                }
+            }
+        }
+        double det = 1.0;
+        for (int i = 0; i < rows; i++){
+            det *= res_mat[i][i];
+        }
+        return det;
+    }
 }
 
