@@ -1,11 +1,9 @@
 package cv_source;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 
 public class Main {
-    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
+    public static void main(String[] args) throws IOException {
         Document cv = new Document("Jana Kowalski - CV");
         cv.setPhoto("https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Calico_tabby_cat_-_Savannah.jpg/1200px-Calico_tabby_cat_-_Savannah.jpg");
         // Simple paragraph example
@@ -24,7 +22,17 @@ public class Main {
         sec2.addParagraph(skillsParagraph);
         cv.addSection(sec2);
 
-        // Write to HTML
-        cv.writeHTML(new PrintStream("cv2.html","UTF-8"));
+        // Write to JSON
+        String json_output = cv.toJson();
+        System.out.println(json_output);
+
+        try (FileWriter file = new FileWriter("cv_output.json")) {
+            file.write(json_output);
+        }
+        // Deserialize from JSON
+        Document deserializedCv = Document.fromJson(json_output);
+
+        // Write deserialized document to HTML
+        deserializedCv.writeHTML(new PrintStream("deserialized_cv.html", "UTF-8"));
     }
 }

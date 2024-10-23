@@ -1,6 +1,10 @@
 // Document.java
 package cv_source;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +24,21 @@ public class Document {
 
     public void addSection(Section section) {
         sections.add(section);
+    }
+
+    String toJson(){
+        RuntimeTypeAdapterFactory<Paragraph> adapter =
+                RuntimeTypeAdapterFactory
+                        .of(Paragraph.class)
+                        .registerSubtype(Paragraph.class)
+                        .registerSubtype(ParagraphWithList.class);
+        Gson gson = new GsonBuilder().registerTypeAdapterFactory(adapter).setPrettyPrinting().create();
+        return gson.toJson(this);
+    }
+
+    public static Document fromJson(String jsonString){
+        Gson gson = new GsonBuilder().create();
+        return gson.fromJson(jsonString, Document.class);
     }
 
     public void writeHTML(PrintStream out) {
