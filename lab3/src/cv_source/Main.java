@@ -25,6 +25,6 @@ public class Main {
         cv.addSection(sec2);
 
         // Write to HTML
-        cv.writeHTML(new PrintStream("cv.html","UTF-8"));
+        cv.writeHTML(new PrintStream("cv2.html","UTF-8"));
     }
 }
