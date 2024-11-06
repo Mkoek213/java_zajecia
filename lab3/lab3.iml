@@ -18,5 +18,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="google.code.gson" level="project" />
+    <orderEntry type="library" name="danilopianini.gson.extras" level="project" />
   </component>
 </module>

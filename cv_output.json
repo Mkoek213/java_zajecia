@@ -1,0 +1,47 @@
+{
+  "title": "Jana Kowalski - CV",
+  "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Calico_tabby_cat_-_Savannah.jpg/1200px-Calico_tabby_cat_-_Savannah.jpg"
+  },
+  "sections": [
+    {
+      "title": "Dane osobowe",
+      "paragraps": [
+        {
+          "type": "Paragraph",
+          "content": "Imie i nazwisko: Jan Kowalski"
+        },
+        {
+          "type": "Paragraph",
+          "content": "Adres: ul. Kolorowa 12"
+        },
+        {
+          "type": "Paragraph",
+          "content": "Tel: 123456789"
+        }
+      ]
+    },
+    {
+      "title": "Umiejetnosci",
+      "paragraps": [
+        {
+          "type": "ParagraphWithList",
+          "list": {
+            "items": [
+              {
+                "content": "C"
+              },
+              {
+                "content": "C++"
+              },
+              {
+                "content": "Java"
+              }
+            ]
+          },
+          "content": "Znane technologie"
+        }
+      ]
+    }
+  ]
+}
