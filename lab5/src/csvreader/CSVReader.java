@@ -97,61 +97,94 @@ public class CSVReader {
     //implementacja 8:
     public String get(int columnIndex){
         if(isMissing(columnIndex)){
-            return "";
+            return " ";
         }
         return current[columnIndex];
     }
 
     //implementacja 8 ciąg dalszy:
     public String get(String columnLabel){
+        if (isMissing(columnLabel)) {
+            return " ";
+        }
         return get(columnLabelsToInt.get(columnLabel));
     }
 
     //implementacja 9:
     public int getInt(int columnIndex){
+        if (isMissing(columnIndex)) {
+            return 0;
+        }
         return Integer.parseInt(get(columnIndex));
     }
 
     //implementacja 9 ciąg dalszy:
     public int getInt(String columnLabel){
+        if (isMissing(columnLabel)) {
+            return 0;
+        }
         return getInt(columnLabelsToInt.get(columnLabel));
     }
 
     //implementacja 10:
     public long getLong(int columnIndex){
+        if (isMissing(columnIndex)) {
+            return 0;
+        }
         return Long.parseLong(get(columnIndex));
     }
 
     //implementacja 10 ciąg dalszy:
     public long getLong(String columnLabel){
+        if (isMissing(columnLabel)) {
+            return 0;
+        }
         return getLong(columnLabelsToInt.get(columnLabel));
     }
 
     //implementacja 11:
     public double getDouble(int columnIndex){
+        if (isMissing(columnIndex)) {
+            return 0.0;
+        }
         return Double.parseDouble(get(columnIndex));
     }
 
     //implementacja 11 ciąg dalszy:
     public double getDouble(String columnLabel){
+        if (isMissing(columnLabel)) {
+            return 0.0;
+        }
         return getDouble(columnLabelsToInt.get(columnLabel));
     }
 
     //implementacja 12:
     public LocalTime getTime(int columnIndex,String format){
+        if (isMissing(columnIndex)) {
+            return LocalTime.parse("66:66", DateTimeFormatter.ofPattern("HH:mm"));
+        }
         return LocalTime.parse(get(columnIndex), DateTimeFormatter.ofPattern(format));
     }
 
     public LocalTime getTime(String columnLabel,String format){
+        if (isMissing(columnLabel)) {
+            return LocalTime.parse("66:66", DateTimeFormatter.ofPattern("HH:mm"));
+        }
         return LocalTime.parse(get(columnLabelsToInt.get(columnLabel)), DateTimeFormatter.ofPattern(format));
     }
 
     //implementacja 12 ciąg dalszy:
     public LocalDate getDate(int columnIndex,String format){
+        if (isMissing(columnIndex)) {
+            return LocalDate.parse("0000-00-00", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
         return LocalDate.parse(get(columnIndex), DateTimeFormatter.ofPattern(format));
     }
 
     public LocalDate getDate(String columnLabel,String format){
+        if (isMissing(columnLabel)) {
+            return LocalDate.parse("0000-00-00", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
         return LocalDate.parse(get(columnLabelsToInt.get(columnLabel)), DateTimeFormatter.ofPattern(format));
     }
 
@@ -185,40 +218,52 @@ public class CSVReader {
 
 
 
-
     public static void main(String[] args) throws IOException {
-        CSVReader reader = new CSVReader("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/elec.csv",",",true);
-        PrintWriter output = new PrintWriter(new OutputStreamWriter(new FileOutputStream("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/output.csv"), "Cp1250"));
+        CSVReader reader = new CSVReader("lab5/resources/elec.csv",",",true);
+        PrintWriter output = new PrintWriter(new OutputStreamWriter(new FileOutputStream("lab5/resources/output.csv")));
         output.printf("Time,Date,Period,Class,NSWDemand\n");
+
+        // Define date and time formats
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         while (reader.next()) {
-            //print column names
+            // Get columns
             int id = reader.getInt("period");
             String name = reader.get("class");
             double fare = reader.getDouble("nswdemand");
-            //get local time
+
+            // Get local time and format it
             LocalTime time = reader.getTime("hour","HH:mm");
-            //get local date
+            String formattedTime = time.format(timeFormatter);
+
+            // Get local date and format it
             LocalDate date = reader.getDate("date","yyyy-MM-dd");
-            output.printf("%s,%s, ",time,date);
-            output.printf("%d,%s,%f\n",id, name, fare);
+            String formattedDate = date.format(dateFormatter);
+
+            // Write formatted output
+            output.printf("%s,%s,%d,%s,%f\n", formattedTime, formattedDate, id, name, fare);
         }
+        output.flush();
+        output.close();
     }
 //    public static void main(String[] args) throws IOException {
-//        CSVReader reader = new CSVReader("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/elec.csv",",",true);
+//        CSVReader reader = new CSVReader("lab5/resources/elec.csv", ",", true);
 //
-//        while(reader.next()){
+//        while (reader.next()) {
 //            int id = reader.getInt("period");
 //            String name = reader.get("class");
 //            double fare = reader.getDouble("nswdemand");
 //            //get local time
-//            LocalTime time = reader.getTime("hour","HH:mm");
+//            LocalTime time = reader.getTime("hour", "HH:mm");
 //            //get local date
-//            LocalDate date = reader.getDate("date","yyyy-MM-dd");
+//            LocalDate date = reader.getDate("date", "yyyy-MM-dd");
 //
-//            System.out.printf("%s - %s",time,date);
-//            System.out.printf("%d %s %f\n",id, name, fare);
+//            System.out.printf("%s - %s", time, date);
+//            System.out.printf("%d %s %f\n", id, name, fare);
 //
 //        }
+//    }
 //        System.out.println("\n");
 //        System.out.println("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
 //        System.out.println("\n");
