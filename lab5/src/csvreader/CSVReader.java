@@ -30,10 +30,9 @@ public class CSVReader {
      *         date = LocalDate.parse("23.11.2017", DateTimeFormatter.ofPattern("dd.MM.yyyy"));
      *         System.out.println(date);
      * Możesz także napisać funkcje zwracające LocalDateTime (połaczenie daty i czasu).
-      */
+     */
 
-     /**
-     *
+    /**
      * @param filename - nazwa pliku
      * @param delimiter - separator pól
      * @param hasHeader - czy plik ma wiersz nagłówkowy
@@ -42,25 +41,25 @@ public class CSVReader {
     // nazwy kolumn w takiej kolejności, jak w pliku
     List<String> columnLabels = new ArrayList<>();
     // odwzorowanie: nazwa kolumny -> numer kolumny
-    Map<String,Integer> columnLabelsToInt = new HashMap<>();
-    String[]current;
+    Map<String, Integer> columnLabelsToInt = new HashMap<>();
+    String[] current;
 
 
-    public CSVReader(String filename,String delimiter,boolean hasHeader) throws IOException {
+    public CSVReader(String filename, String delimiter, boolean hasHeader) throws IOException {
         reader = new BufferedReader(new FileReader(filename));
         this.delimiter = delimiter;
         this.hasHeader = hasHeader;
-        if(hasHeader)parseHeader();
+        if (hasHeader) parseHeader();
     }
 
     //implementacja 1,3:
-    public CSVReader(String filename,String delimiter) throws IOException {
-        this(filename,delimiter,false);
+    public CSVReader(String filename, String delimiter) throws IOException {
+        this(filename, delimiter, false);
     }
 
     //implementacja 1,3 ciąg dalszy:
     public CSVReader(String filename) throws IOException {
-        this(filename,",",false);
+        this(filename, ",", false);
     }
 
     //implementacja 2:
@@ -68,42 +67,42 @@ public class CSVReader {
         this.reader = new BufferedReader(reader);
         this.delimiter = delimiter;
         this.hasHeader = hasHeader;
-        if(hasHeader)parseHeader();
+        if (hasHeader) parseHeader();
     }
 
     //implementacja 4:
-    public List<String> getColumnLabels(){
+    public List<String> getColumnLabels() {
         return columnLabels;
     }
 
     //implementacja 5:
-    public int getRecordLength(){
+    public int getRecordLength() {
         return current.length;
     }
 
     //implementacja 6:
-    public boolean isMissing(int columnIndex){
-        if(columnIndex >= current.length || current[columnIndex].isEmpty()){
+    public boolean isMissing(int columnIndex) {
+        if (columnIndex >= current.length || current[columnIndex].isEmpty()) {
             return true;
         }
         return false;
     }
 
     //implementacja 7:
-    public boolean isMissing(String columnLabel){
+    public boolean isMissing(String columnLabel) {
         return isMissing(columnLabelsToInt.get(columnLabel));
     }
 
     //implementacja 8:
-    public String get(int columnIndex){
-        if(isMissing(columnIndex)){
+    public String get(int columnIndex) {
+        if (isMissing(columnIndex)) {
             return " ";
         }
         return current[columnIndex];
     }
 
     //implementacja 8 ciąg dalszy:
-    public String get(String columnLabel){
+    public String get(String columnLabel) {
         if (isMissing(columnLabel)) {
             return " ";
         }
@@ -111,7 +110,7 @@ public class CSVReader {
     }
 
     //implementacja 9:
-    public int getInt(int columnIndex){
+    public int getInt(int columnIndex) {
         if (isMissing(columnIndex)) {
             return 0;
         }
@@ -119,7 +118,7 @@ public class CSVReader {
     }
 
     //implementacja 9 ciąg dalszy:
-    public int getInt(String columnLabel){
+    public int getInt(String columnLabel) {
         if (isMissing(columnLabel)) {
             return 0;
         }
@@ -127,7 +126,7 @@ public class CSVReader {
     }
 
     //implementacja 10:
-    public long getLong(int columnIndex){
+    public long getLong(int columnIndex) {
         if (isMissing(columnIndex)) {
             return 0;
         }
@@ -135,7 +134,7 @@ public class CSVReader {
     }
 
     //implementacja 10 ciąg dalszy:
-    public long getLong(String columnLabel){
+    public long getLong(String columnLabel) {
         if (isMissing(columnLabel)) {
             return 0;
         }
@@ -143,7 +142,7 @@ public class CSVReader {
     }
 
     //implementacja 11:
-    public double getDouble(int columnIndex){
+    public double getDouble(int columnIndex) {
         if (isMissing(columnIndex)) {
             return 0.0;
         }
@@ -151,7 +150,7 @@ public class CSVReader {
     }
 
     //implementacja 11 ciąg dalszy:
-    public double getDouble(String columnLabel){
+    public double getDouble(String columnLabel) {
         if (isMissing(columnLabel)) {
             return 0.0;
         }
@@ -159,14 +158,14 @@ public class CSVReader {
     }
 
     //implementacja 12:
-    public LocalTime getTime(int columnIndex,String format){
+    public LocalTime getTime(int columnIndex, String format) {
         if (isMissing(columnIndex)) {
             return LocalTime.parse("66:66", DateTimeFormatter.ofPattern("HH:mm"));
         }
         return LocalTime.parse(get(columnIndex), DateTimeFormatter.ofPattern(format));
     }
 
-    public LocalTime getTime(String columnLabel,String format){
+    public LocalTime getTime(String columnLabel, String format) {
         if (isMissing(columnLabel)) {
             return LocalTime.parse("66:66", DateTimeFormatter.ofPattern("HH:mm"));
         }
@@ -174,14 +173,14 @@ public class CSVReader {
     }
 
     //implementacja 12 ciąg dalszy:
-    public LocalDate getDate(int columnIndex,String format){
+    public LocalDate getDate(int columnIndex, String format) {
         if (isMissing(columnIndex)) {
             return LocalDate.parse("0000-00-00", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
         return LocalDate.parse(get(columnIndex), DateTimeFormatter.ofPattern(format));
     }
 
-    public LocalDate getDate(String columnLabel,String format){
+    public LocalDate getDate(String columnLabel, String format) {
         if (isMissing(columnLabel)) {
             return LocalDate.parse("0000-00-00", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
@@ -209,7 +208,7 @@ public class CSVReader {
         // czyta następny wiersz, dzieli na elementy i przypisuje do current
         //
         String line = reader.readLine();
-        if(line == null){
+        if (line == null) {
             return false;
         }
         current = line.split(delimiter);
@@ -217,9 +216,8 @@ public class CSVReader {
     }
 
 
-
     public static void main(String[] args) throws IOException {
-        CSVReader reader = new CSVReader("lab5/resources/elec.csv",",",true);
+        CSVReader reader = new CSVReader("lab5/resources/elec.csv", ",", true);
         PrintWriter output = new PrintWriter(new OutputStreamWriter(new FileOutputStream("lab5/resources/output.csv")));
         output.printf("Time,Date,Period,Class,NSWDemand\n");
 
@@ -234,11 +232,11 @@ public class CSVReader {
             double fare = reader.getDouble("nswdemand");
 
             // Get local time and format it
-            LocalTime time = reader.getTime("hour","HH:mm");
+            LocalTime time = reader.getTime("hour", "HH:mm");
             String formattedTime = time.format(timeFormatter);
 
             // Get local date and format it
-            LocalDate date = reader.getDate("date","yyyy-MM-dd");
+            LocalDate date = reader.getDate("date", "yyyy-MM-dd");
             String formattedDate = date.format(dateFormatter);
 
             // Write formatted output
@@ -247,6 +245,7 @@ public class CSVReader {
         output.flush();
         output.close();
     }
+}
 //    public static void main(String[] args) throws IOException {
 //        CSVReader reader = new CSVReader("lab5/resources/elec.csv", ",", true);
 //
@@ -281,6 +280,3 @@ public class CSVReader {
 //            System.out.printf("%d %s %f\n",id, name, fare);
 //        }
 //    }
-
-
-}
