@@ -2,10 +2,7 @@ package csvreader;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AdminUnitList {
     List<AdminUnit> units = new ArrayList<>();
@@ -19,6 +16,7 @@ public class AdminUnitList {
     Map<Long, AdminUnit> idToUnit = new HashMap<>();
     Map<AdminUnit, Long> unitToParentId = new HashMap<>();
     Map<Long,List<AdminUnit>> parent2child = new HashMap<>();
+
 
 
     public void read(String filename) throws IOException {
@@ -42,10 +40,9 @@ public class AdminUnitList {
             double y1 = reader.getDouble("y1");
             double y2 = reader.getDouble("y2");
             double y3 = reader.getDouble("y3");
-            unit.bbox.xmin = Math.min(x1, Math.min(x2, x3));
-            unit.bbox.xmax = Math.max(x1, Math.max(x2, x3));
-            unit.bbox.ymin = Math.min(y1, Math.min(y2, y3));
-            unit.bbox.ymax = Math.max(y1, Math.max(y2, y3));
+            unit.bbox.addPoint(x1, y1);
+            unit.bbox.addPoint(x2, y2);
+            unit.bbox.addPoint(x3, y3);
             units.add(unit);
         }
 
@@ -71,6 +68,10 @@ public class AdminUnitList {
             }else{
                 unit.children = new ArrayList<>();
             }
+        }
+        // assign neighbours
+        for (AdminUnit unit : units) {
+            unit.neighbours = getNeighbors(unit, 15);
         }
     }
 
@@ -144,11 +145,44 @@ public class AdminUnitList {
         return ret;
     }
 
+
+    AdminUnitList getNeighbors(AdminUnit unit, double maxdistance){
+        /**
+         * Zwraca listę jednostek sąsiadujących z jendostką unit na tym samym poziomie hierarchii admin_level.
+         * Czyli sąsiadami wojweództw są województwa, powiatów - powiaty, gmin - gminy, miejscowości - inne miejscowości
+         * @param unit - jednostka, której sąsiedzi mają być wyznaczeni
+         * @param maxdistance - parametr stosowany wyłącznie dla miejscowości, maksymalny promień odległości od środka unit,
+         *                    w którym mają sie znaleźć punkty środkowe BoundingBox sąsiadów
+         * @return lista wypełniona sąsiadami
+         * Zdefiniujmy wpierw pojęcie sąsiada. W typowym przypadku sąsiadem danej jednostki ma być jednostka
+         *
+         * na tym samym poziomie hierarchii (czyli sąsiadami województw mają być województwa, powiatów – powiaty, gmin – gminy, a miejscowości - leżące w pobliżu miejscowości
+         * podstawowym kryterium (dla województw, powiatów i gmin) ma być pokrywanie się BoundingBox testowane za pomocą metody intersects()
+         * Miejscowości mogą być oddalone i ich granice nie będą się pokrywały. Stąd kryterium pokrywania nie wystarczy. Przyjmiemy więc, że sąsiadujące miejscowości położone są w odległości mniejszej niż pewien konfigurowalny parametr maxdistance, np. równy 15 km. Odległości mają być liczone od środków BoundingBox
+         */
+        AdminUnitList neighbors = new AdminUnitList();
+        for (AdminUnit neighbor : units) {
+            if (unit.adminLevel == neighbor.adminLevel) {
+                if (unit.bbox.intersects(neighbor.bbox)) {
+                    neighbors.units.add(neighbor);
+                } else if (unit.adminLevel == 8) {
+                    double distance = unit.bbox.distanceTo(neighbor.bbox);
+                    if (distance < maxdistance) {
+                        neighbors.units.add(neighbor);
+                    }
+                }
+            }
+        }
+        return neighbors;
+    }
+
+
 //    TODO Wypisz wybrane jednostki wywołując selectByName() oraz list().
 //
 //    Projekt interfejsu w stylu lista zwraca listę obiektów spełniających kryteria będziemy dalej rozwijać. To jest całkiem wydajne. Lista jest tablicą referencji (8-bajtowych wartości). Obiekty nie są kopiowane, więc listy nie zużywają dużo pamięci w porównaniu do obecnie dostępnych zasobów.
 //  TEST V1
     public static void main(String[] args) throws IOException {
+        double t1 = System.nanoTime()/1e6;
         AdminUnitList units = new AdminUnitList();
         units.read("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/admin-units.csv");
         units.list(System.out);
@@ -157,6 +191,8 @@ public class AdminUnitList {
         units.selectByName(".*", false).list(System.out);
         units.selectByName(".*z.*", true).list(System.out);
         units.selectByName(".*z.*", false).list(System.out);
+        double t2 = System.nanoTime()/1e6;
+        System.out.printf(Locale.US,"t2-t1=%f\n",t2-t1);
     }
 
 //    TEST V2

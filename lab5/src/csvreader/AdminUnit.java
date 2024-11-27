@@ -18,6 +18,8 @@ public class AdminUnit {
     BoundingBox bbox = new BoundingBox();
     List<AdminUnit> children;
     List<String> children_names = new ArrayList<>();
+    AdminUnitList neighbours;
+    List<String> neighbours_names = new ArrayList<>();
 
 
     // Dodaj metodę toString() wypisującą podstawowe informacje (nazwa, typ jednostki, powierzchnia, itp.)
@@ -26,6 +28,12 @@ public class AdminUnit {
             // check if it is already in the list
             if (!children_names.contains(child.name)){
                 children_names.add(child.name);
+            }
+        }
+        for (AdminUnit neighbour : neighbours.units) {
+            // check if it is already in the list
+            if (!neighbours_names.contains(neighbour.name)){
+                neighbours_names.add(neighbour.name);
             }
         }
         if (parent == null){
@@ -37,10 +45,8 @@ public class AdminUnit {
                     ", area=" + area +
                     ", density=" + density +
                     ", parent=" + " " +
-                    ", xmin=" + bbox.xmin +
-                    ", ymin=" + bbox.ymin +
-                    ", xmax=" + bbox.xmax +
-                    ", ymax=" + bbox.ymax +
+                    ", neighbours=" + neighbours_names +
+                    ", bbox=" + bbox.ToString() +
                     '}';
         }
         return "AdminUnit{" +
@@ -51,10 +57,8 @@ public class AdminUnit {
                 ", area=" + area +
                 ", density=" + density +
                 ", parent=" + parent.name +
-                ", xmin=" + bbox.xmin +
-                ", ymin=" + bbox.ymin +
-                ", xmax=" + bbox.xmax +
-                ", ymax=" + bbox.ymax +
+                ", neighbours=" + neighbours_names +
+                ", bbox=" + bbox.ToString() +
                 '}';
     }
 
