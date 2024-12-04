@@ -22,7 +22,6 @@ public class AdminUnit {
     List<String> neighbours_names = new ArrayList<>();
 
 
-    // Dodaj metodę toString() wypisującą podstawowe informacje (nazwa, typ jednostki, powierzchnia, itp.)
     public String toString() {
         for (AdminUnit child : children) {
             // check if it is already in the list
@@ -72,4 +71,5 @@ public class AdminUnit {
             }
         }
     }
+
 }

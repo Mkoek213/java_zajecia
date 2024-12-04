@@ -1,13 +1,7 @@
 package csvreader;
 
 public class BoundingBox {
-//    Napisz docelową klasę BoundingBox. Jest to prostokąt otaczający jednostkę. Do zdefiniowania prostokąta wystarczą dwa przeciwległe punkty, zamiast pięciu.
-//
-//    Zaprojektuj BoundingBox tak, aby miał dwa stany:
-//
-//    BoundingBox może być pusty
-//    albo definiuje prostokąt (w tym zdegenerowany do pojedynczego punktu)
-//    Sam(a) zadecyduj, jak je odróżnić, np. stosując specjalne wartości Double.NaN albo dodając flagę pusty/niepusty.
+
     double xmin;
     double ymin;
     double xmax;
@@ -15,12 +9,6 @@ public class BoundingBox {
 
 
     void addPoint(double x, double y){
-        /**
-         * Powiększa BB tak, aby zawierał punkt (x,y)
-         * Jeżeli był wcześniej pusty - wówczas ma zawierać wyłącznie ten punkt
-         * @param x - współrzędna x
-         * @param y - współrzędna y
-         */
 
         if (isEmpty()){
             xmin = x;
@@ -44,14 +32,7 @@ public class BoundingBox {
         }
     }
 
-
     boolean contains(double x, double y){
-        /**
-         * Sprawdza, czy BB zawiera punkt (x,y)
-         * @param x
-         * @param y
-         * @return
-         */
 
         if (x >= xmin && x <= xmax && y >= ymin && y <= ymax){
             return true;
@@ -59,26 +40,16 @@ public class BoundingBox {
         return false;
     }
 
-
     boolean contains(BoundingBox bb){
-        /**
-         * Sprawdza czy dany BB zawiera bb
-         * @param bb
-         * @return
-         */
+
         if (xmin <= bb.xmin && xmax >= bb.xmax && ymin <= bb.ymin && ymax >= bb.ymax){
             return true;
         }
         return false;
     }
 
-
     boolean intersects(BoundingBox bb){
-        /**
-         * Sprawdza, czy dany BB przecina się z bb
-         * @param bb
-         * @return
-         */
+
         if (xmin < bb.xmax && xmax > bb.xmin && ymin < bb.ymax && ymax > bb.ymin) {
             return true;
         }
@@ -86,12 +57,7 @@ public class BoundingBox {
     }
 
     BoundingBox add(BoundingBox bb){
-        /**
-         * Powiększa rozmiary tak, aby zawierał bb oraz poprzednią wersję this
-         * Jeżeli był pusty - po wykonaniu operacji ma być równy bb
-         * @param bb
-         * @return
-         */
+
         if (isEmpty()){
             xmin = bb.xmin;
             ymin = bb.ymin;
@@ -116,10 +82,6 @@ public class BoundingBox {
     }
 
     boolean isEmpty(){
-        /**
-         * Sprawdza czy BB jest pusty
-         * @return
-         */
 
         if (xmin == 0 && ymin == 0 && xmax == 0 && ymax == 0){
             return true;
@@ -127,14 +89,7 @@ public class BoundingBox {
         return false;
     }
 
-
     boolean equals_(Object o) {
-        /**
-         * Sprawdza czy
-         * 1) typem o jest BoundingBox
-         * 2) this jest równy bb
-         * @return
-         */
 
         if (o instanceof BoundingBox) {
             BoundingBox bb = (BoundingBox) o;
@@ -146,13 +101,7 @@ public class BoundingBox {
         return false;
     }
 
-
     double getCenterX(){
-        /**
-         * Oblicza i zwraca współrzędną x środka
-         * @return if !isEmpty() współrzędna x środka else wyrzuca wyjątek
-         * (sam dobierz typ)
-         */
 
         if (!isEmpty()){
             return (xmin + xmax) / 2;
@@ -161,28 +110,15 @@ public class BoundingBox {
     }
 
     double getCenterY(){
-        /**
-         * Oblicza i zwraca współrzędną y środka
-         * @return if !isEmpty() współrzędna y środka else wyrzuca wyjątek
-         * (sam dobierz typ)
-         */
+
         if (!isEmpty()){
             return (ymin + ymax) / 2;
         }
         throw new RuntimeException("Not implemented");
     }
 
-
     double distanceTo(BoundingBox bbx){
-        /**
-         * Oblicza odległość pomiędzy środkami this bounding box oraz bbx
-         * @param bbx prostokąt, do którego liczona jest odległość
-         * @return if !isEmpty odległość, else wyrzuca wyjątek lub zwraca maksymalną możliwą wartość double
-         * Ze względu na to, że są to współrzędne geograficzne, zamiast odległości użyj wzoru haversine
-         * (ang. haversine formula)
-         *
-         * Gotowy kod można znaleźć w Internecie...
-         */
+
         if (!isEmpty()){
             double lat1 = getCenterX();
             double lon1 = getCenterY();

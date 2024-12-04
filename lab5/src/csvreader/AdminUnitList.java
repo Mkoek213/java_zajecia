@@ -3,21 +3,18 @@ package csvreader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.function.Predicate;
+import java.text.Collator;
+import java.util.Comparator;
+import java.util.Locale;
+
 
 public class AdminUnitList {
     List<AdminUnit> units = new ArrayList<>();
-//    Przetwórzmy prawidłowo informacje o parent jednostce nadrzędnej. W pliku są zapisywane wartości long, które chcemy zamienić na referencje. A więc potrzebne jest odwzorowanie (mapa) przypisująca Long id → AdminUnit. Potrzebne jest zapewne także odwzorowanie AdminUnit → Long parentid.
-//
-//    Zbieraj te informacje podczas czytania rekordów
-//    Po zakończeniu czytania ustaw odpowiednie referencje
-//    Niektóre rekordy (województwa) nie mają jednostki nadrzędnej. Przypisz im parent=null
-//
-//    Uwaga mapa ma służyć wyłącznie do odczytu. Nie ma być atrybutem klasy
+
     Map<Long, AdminUnit> idToUnit = new HashMap<>();
     Map<AdminUnit, Long> unitToParentId = new HashMap<>();
     Map<Long,List<AdminUnit>> parent2child = new HashMap<>();
-
-
 
     public void read(String filename) throws IOException {
         CSVReader reader = new CSVReader(filename, ",", true);
@@ -76,65 +73,35 @@ public class AdminUnitList {
     }
 
     public void fixMissingValues() {
-//        dla każdego obiektu AdminUnit, z brakującymi danymi population oraz density
-//          brakujące dane są NULL
-//        przyjmie estymację density = parent.density
-//        obliczy population = area*density
-//        Problem :!:. W jednostce parent też może brakować wartości. Chyba funkcja AdminUnit.fixMissingValues() (lub fixMissingValues(AdminUnit au)) powninna być rekurencyjna?
+
         for (AdminUnit unit: units){
             if (unit.density == 0){
                 unit.fixMissingValues();
             }
             if (unit.population == 0){
                 unit.population = unit.area * unit.density;
-                // crop it to 0 places after comma
                 unit.population = (int) unit.population;
             }
         }
     }
 
-
     void list(PrintStream out){
-    /**
-     * Wypisuje zawartość korzystając z AdminUnit.toString()
-     * @param out
-     */
+
         for (AdminUnit unit : units) {
             out.println(unit.toString());
         }
     }
 
-
     void list(PrintStream out,int offset, int limit ){
-    /**
-     * Wypisuje co najwyżej limit elementów począwszy od elementu o indeksie offset
-     * @param out - strumień wyjsciowy
-     * @param offset - od którego elementu rozpocząć wypisywanie
-     * @param limit - ile (maksymalnie) elementów wypisać
-     */
+
         for (int i = offset; i < offset + limit && i < units.size(); i++) {
             out.println(units.get(i).toString());
         }
     }
 
-
     AdminUnitList selectByName(String pattern, boolean regex){
-    /**
-     * Zwraca nową listę zawierającą te obiekty AdminUnit, których nazwa pasuje do wzorca
-     * @param pattern - wzorzec dla nazwy
-     * @param regex - jeśli regex=true, użyj finkcji String matches(); jeśli false użyj funkcji contains()
-     * @return podzbiór elementów, których nazwy spełniają kryterium wyboru
-     * W poniższych przykładach zawsze rezultatem będzie true
-     *
-     *         System.out.println("województwo małopolskie".matches(".*małop.*"));
-     *         System.out.println("województwo małopolskie".matches("^wojew.*"));
-     *         System.out.println("województwo pomorskie".matches(".*skie"));
-     *         System.out.println("województwo małopolskie".contains("małop"));
-     */
 
         AdminUnitList ret = new AdminUnitList();
-        // przeiteruj po zawartości units
-        // jeżeli nazwa jednostki pasuje do wzorca dodaj do ret
         for (AdminUnit unit : units) {
             if (regex && unit.name.matches(pattern)) {
                 ret.units.add(unit);
@@ -145,21 +112,91 @@ public class AdminUnitList {
         return ret;
     }
 
+    AdminUnitList sortInplaceByName(){
+
+        class AdminUnitNameComparator implements Comparator<AdminUnit> {
+            @Override
+            public int compare(AdminUnit t, AdminUnit t1) {
+                Collator c = Collator.getInstance(new Locale("pl", "PL"));
+                return c.compare(t.name, t1.name);
+            }
+        }
+        units.sort(new AdminUnitNameComparator());
+        return this;
+    }
+
+    AdminUnitList sortInplaceByArea(){
+
+        units.sort(new Comparator<AdminUnit>() {
+            @Override
+            public int compare(AdminUnit t, AdminUnit t1) {
+                return Double.compare(t.area, t1.area);
+            }
+        });
+        return this;
+    }
+
+    AdminUnitList sortInplaceByPopulation(){
+
+        units.sort((t, t1) -> Double.compare(t.population, t1.population));
+        return this;
+    }
+
+    AdminUnitList sortInplace(Comparator<AdminUnit> cmp){
+
+        units.sort(cmp);
+        return this;
+    }
+
+    AdminUnitList sort(Comparator<AdminUnit> cmp){
+
+        AdminUnitList ret = new AdminUnitList();
+        for (AdminUnit unit : units) {
+            ret.units.add(unit);
+        }
+        ret.sortInplace(cmp);
+        return ret;
+    }
+
+    AdminUnitList filter(Predicate<AdminUnit> pred){
+
+        AdminUnitList ret = new AdminUnitList();
+        for (AdminUnit unit : units) {
+            if (pred.test(unit)) {
+                ret.units.add(unit);
+            }
+        }
+        return ret;
+    }
+
+    AdminUnitList filter(Predicate<AdminUnit> pred, int limit){
+
+        AdminUnitList ret = new AdminUnitList();
+        for (AdminUnit unit : units) {
+            if (pred.test(unit) && ret.units.size() < limit) {
+                ret.units.add(unit);
+            }
+        }
+        return ret;
+    }
+
+    AdminUnitList filter(Predicate<AdminUnit> pred, int offset, int limit){
+
+        AdminUnitList ret = new AdminUnitList();
+        int counter = 0;
+        for (AdminUnit unit : units) {
+            if (pred.test(unit)) {
+                if (counter >= offset && ret.units.size() < limit) {
+                    ret.units.add(unit);
+                }
+                counter++;
+            }
+        }
+        return ret;
+    }
 
     AdminUnitList getNeighbors(AdminUnit unit, double maxdistance){
-        /**
-         * Zwraca listę jednostek sąsiadujących z jendostką unit na tym samym poziomie hierarchii admin_level.
-         * Czyli sąsiadami wojweództw są województwa, powiatów - powiaty, gmin - gminy, miejscowości - inne miejscowości
-         * @param unit - jednostka, której sąsiedzi mają być wyznaczeni
-         * @param maxdistance - parametr stosowany wyłącznie dla miejscowości, maksymalny promień odległości od środka unit,
-         *                    w którym mają sie znaleźć punkty środkowe BoundingBox sąsiadów
-         * @return lista wypełniona sąsiadami
-         * Zdefiniujmy wpierw pojęcie sąsiada. W typowym przypadku sąsiadem danej jednostki ma być jednostka
-         *
-         * na tym samym poziomie hierarchii (czyli sąsiadami województw mają być województwa, powiatów – powiaty, gmin – gminy, a miejscowości - leżące w pobliżu miejscowości
-         * podstawowym kryterium (dla województw, powiatów i gmin) ma być pokrywanie się BoundingBox testowane za pomocą metody intersects()
-         * Miejscowości mogą być oddalone i ich granice nie będą się pokrywały. Stąd kryterium pokrywania nie wystarczy. Przyjmiemy więc, że sąsiadujące miejscowości położone są w odległości mniejszej niż pewien konfigurowalny parametr maxdistance, np. równy 15 km. Odległości mają być liczone od środków BoundingBox
-         */
+
         AdminUnitList neighbors = new AdminUnitList();
         for (AdminUnit neighbor : units) {
             if (unit.adminLevel == neighbor.adminLevel) {
@@ -176,25 +213,79 @@ public class AdminUnitList {
         return neighbors;
     }
 
-
 //    TODO Wypisz wybrane jednostki wywołując selectByName() oraz list().
 //
 //    Projekt interfejsu w stylu lista zwraca listę obiektów spełniających kryteria będziemy dalej rozwijać. To jest całkiem wydajne. Lista jest tablicą referencji (8-bajtowych wartości). Obiekty nie są kopiowane, więc listy nie zużywają dużo pamięci w porównaniu do obecnie dostępnych zasobów.
 //  TEST V1
+//    public static void main(String[] args) throws IOException {
+//        double t1 = System.nanoTime()/1e6;
+//        AdminUnitList units = new AdminUnitList();
+//        units.read("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/admin-units.csv");
+//        units.list(System.out);
+//        units.list(System.out, 10, 5);
+//        units.selectByName(".*", true).list(System.out);
+//        units.selectByName(".*", false).list(System.out);
+//        units.selectByName(".*z.*", true).list(System.out);
+//        units.selectByName(".*z.*", false).list(System.out);
+//        double t2 = System.nanoTime()/1e6;
+//        System.out.printf(Locale.US,"t2-t1=%f\n",t2-t1);
+//    }
+//    public static void main(String[] args) throws IOException {
+//        // Zademonstruj w kodzie (np. testach), że jesteś w stanie:
+//        //
+//        //znaleźć wybraną jednostkę na danym poziomie hierarchii
+//        //wyznaczyć i wypisać listę sąsiadów
+//        //sprawdź wyniki na mapie…
+//
+//        AdminUnitList units = new AdminUnitList();
+//        units.read("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/admin-units.csv");
+//        int level = 8;
+//        String name = "Wieliczka";
+//        for (AdminUnit unit : units.units) {
+//            if (unit.adminLevel == level && unit.name.equals(name)) {
+//                System.out.println(unit);
+//                AdminUnitList neighbors = units.getNeighbors(unit, 15);
+//                neighbors.list(System.out);
+//            }
+//        }
+//    }
+
+
     public static void main(String[] args) throws IOException {
-        double t1 = System.nanoTime()/1e6;
+
         AdminUnitList units = new AdminUnitList();
         units.read("/Users/mikolaj/Desktop/work/java_zajecia/lab5/resources/admin-units.csv");
-        units.list(System.out);
-        units.list(System.out, 10, 5);
-        units.selectByName(".*", true).list(System.out);
-        units.selectByName(".*", false).list(System.out);
-        units.selectByName(".*z.*", true).list(System.out);
-        units.selectByName(".*z.*", false).list(System.out);
-        double t2 = System.nanoTime()/1e6;
-        System.out.printf(Locale.US,"t2-t1=%f\n",t2-t1);
-    }
+        PrintStream out = System.out;
+//        //Pytanie 1:
+//        units.filter(a->a.name.startsWith("Ż")).sortInplaceByArea().list(out);
 
-//    TEST V2
+//        //Pytanie 2 wybór (i sortowanie) elementów zaczynających się na “K”:
+//        units.filter(a->a.name.startsWith("K")).sortInplaceByName().list(out);
+
+//        //Pytanie 3 wybór jednostek będących powiatami, których parent.name to województwo małopolskie
+//        units.filter(a->a.adminLevel == 6 && a.parent.name.equals("województwo małopolskie")).list(out);
+
+//        //Pytanie 4 zaproponuj kilka podobnych kryteriów selekcji:
+//        // 1. wybór jednostek będących województwami, których powierzchnia jest większa niż 10000
+//        units.filter(a->a.adminLevel == 4 && a.area > 10000).list(out);
+//        // 2. wybór jednostek będących powiatami, których gęstość zaludnienia jest większa niż 100
+//        units.filter(a->a.adminLevel == 6 && a.density > 100).list(out);
+
+//        // z uzyciem and
+//        Predicate<AdminUnit> p1 = a->a.adminLevel == 6;
+//        Predicate<AdminUnit> p2 = a->a.parent.name.equals("województwo małopolskie");
+//        units.filter(p1.and(p2)).list(out);
+
+        //zapytanie z uzyciem AdminUnitQuery
+        Predicate<AdminUnit> p1 = a->a.area>1000;
+        Predicate<AdminUnit> p2 = a->a.name.startsWith("Sz");
+        AdminUnitQuery query = new AdminUnitQuery()
+                .selectFrom(units)
+                .where(p1)
+                .or(p2)
+                .sort(Comparator.comparingDouble(a -> a.area))
+                .limit(100);
+        query.execute().list(out);
+    }
 
 }
